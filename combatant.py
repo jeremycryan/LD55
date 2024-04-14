@@ -131,7 +131,8 @@ class Combatant:
     def get_blink_image(self, mask):
         return mask.to_surface(unsetcolor=(0, 0, 0, 0))
 
-    def squish_image(self, image, amt):
+    @staticmethod
+    def squish_image(image, amt):
         width_factor = amt
         height_factor = 1/amt
         return pygame.transform.scale(image, (image.get_width()*width_factor, image.get_height()*height_factor))
