@@ -69,6 +69,10 @@ class Combatant:
 
         self.nearby_combatants = []
 
+        self.sprite_cache = {}
+
+
+
     def blink(self):
         self.since_blink = 0
         if self.RADIUS < 100:
