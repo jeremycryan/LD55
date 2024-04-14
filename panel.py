@@ -37,10 +37,10 @@ class Panel:
         y = self.master_surf.get_height()//2
         self.master_surf.blit(self.back_surf, (x - self.back_surf.get_width()//2, y - self.back_surf.get_height()//2))
         self.master_surf.blit(self.unit_surf, (x - 85*c.SCALE - self.unit_surf.get_width()//2, y - self.unit_surf.get_height()//2))
-        self.master_surf.blit(self.name_surf, (x + 20*c.SCALE, y - self.back_surf.get_height()//2 + 60*c.SCALE))
+        self.master_surf.blit(self.name_surf, (x + 20*c.SCALE, y - self.back_surf.get_height()//2 + 50*c.SCALE))
         self.master_surf.blit(self.cauldron_surf, (x - self.back_surf.get_width()//2 - 20*c.SCALE, y - self.back_surf.get_height()//2 - 20*c.SCALE))
         for surf in self.body_surfs:
-            self.master_surf.blit(surf, (x + 20*c.SCALE, y - self.back_surf.get_height() // 2 + 120*c.SCALE))
+            self.master_surf.blit(surf, (x + 20*c.SCALE, y - self.back_surf.get_height() // 2 + 110*c.SCALE))
             y += 25
 
 

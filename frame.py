@@ -3,7 +3,7 @@ import time
 
 import pygame
 
-from combatant import Frog, BigFrog, Lizard, Seeker, Unicorn, Beekeeper, TYPES, Combatant
+from combatant import Frog, BigFrog, Lizard, Seeker, Unicorn, Beekeeper, TYPES, Combatant, Hedgehog, Dragon
 import constants as c
 import random
 
@@ -158,20 +158,23 @@ class ShopFrame(Frame):
 
         self.time_font = pygame.font.Font("fonts/SpicySushi.ttf", int(73*c.SCALE))
 
-        self.time_remaining = 90
+        self.time_remaining = 5
 
         self.preview_units_left = []
         self.preview_units_right = []
         self.preview_units_left_age = []
         self.preview_units_right_age = []
 
+        nudge = 230
         self.panels = [
-            Panel(Frog, Pose((500*c.SCALE, 650*c.SCALE))),
-            Panel(Seeker, Pose((c.WINDOW_WIDTH//2, 650*c.SCALE))),
-            Panel(Beekeeper, Pose((c.WINDOW_WIDTH - 500*c.SCALE, 650*c.SCALE))),
-            Panel(BigFrog, Pose((500*c.SCALE, 900*c.SCALE))),
-            Panel(Lizard, Pose((c.WINDOW_WIDTH//2, 900*c.SCALE))),
-            Panel(Unicorn, Pose((c.WINDOW_WIDTH - 500*c.SCALE, 900*c.SCALE))),
+            Panel(Frog, Pose((500*c.SCALE-nudge*c.SCALE, 650*c.SCALE))),
+            Panel(Seeker, Pose((c.WINDOW_WIDTH//2-nudge*c.SCALE, 650*c.SCALE))),
+            Panel(Beekeeper, Pose((c.WINDOW_WIDTH//2 +nudge*c.SCALE, 650*c.SCALE))),
+            Panel(BigFrog, Pose((500*c.SCALE-nudge*c.SCALE, 900*c.SCALE))),
+            Panel(Hedgehog, Pose((c.WINDOW_WIDTH//2-nudge*c.SCALE, 900*c.SCALE))),
+            Panel(Unicorn, Pose((c.WINDOW_WIDTH//2 + nudge*c.SCALE, 900*c.SCALE))),
+            Panel(Dragon, Pose((c.WINDOW_WIDTH - 500*c.SCALE+nudge*c.SCALE, 900*c.SCALE))),
+            Panel(Lizard, Pose((c.WINDOW_WIDTH - 500 * c.SCALE + nudge * c.SCALE, 650 * c.SCALE))),
         ]
 
 
@@ -187,19 +190,22 @@ class ShopFrame(Frame):
         self.game.teams[0].append("jarm")
         self.game.teams[1].append("ppab")
 
-        if c.DEBUG:
-            for i in range(20):
-                unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
-                self.buy_creatures("jarm", unit, 1)
-            for i in range(20):
-                unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
-                self.buy_creatures("ppab", unit, 1)
+
 
     def update(self, dt, events):
         self.age += dt
 
         if self.time_remaining > 5 and self.money[0] < 5 and self.money[1] < 5:
             self.time_remaining = 5
+
+        if self.time_remaining < 5 and self.money[0] == 100:
+            for i in range(20):
+                unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker, Hedgehog, Dragon])
+                self.buy_creatures("jarm", unit, 1)
+        if self.time_remaining < 5 and self.money[1] == 100:
+            for i in range(20):
+                unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker, Hedgehog, Dragon])
+                self.buy_creatures("ppab", unit, 1)
 
         for panel in self.panels:
             panel.update(dt, events)
@@ -370,14 +376,14 @@ class ShopFrame(Frame):
     def draw_previews(self, surface, offset=(0, 0)):
         center = 400*c.SCALE + offset[0], 480*c.SCALE + offset[1]
         out_small = 30*c.SCALE
-        out_medium = 40*c.SCALE
+        out_medium = 60*c.SCALE
         out_large = 100*c.SCALE
 
         spawn_time = 1
 
         for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_left, self.preview_units_left_age))[::-1] if j.RADIUS > 100]):
             i = len([j for j in self.preview_units_left[::-1] if j.RADIUS > 100]) - i - 1
-            y = center[1] - 40
+            y = center[1] - 40*c.SCALE
             distance_from_center = out_large * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center

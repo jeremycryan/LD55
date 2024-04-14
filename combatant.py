@@ -40,6 +40,7 @@ class Combatant:
     TARGET_ANGLE_SPREAD = 30
     MASS = 100
     START_SLOW = True
+    SPINY = False
 
     def __init__(self, combatant_collection, position, tribe=0):
         self.RADIUS *= c.SCALE
@@ -100,6 +101,8 @@ class Combatant:
 
     def deal_damage_to(self, other):
         other.take_damage(self.BASE_DAMAGE)
+        if other.SPINY:
+            self.take_damage(int(self.BASE_DAMAGE*0.8))
 
     def take_damage(self, amt):
         self.hit_points -= amt
@@ -392,6 +395,16 @@ class Frog(Combatant):
     COST = 5
     pass
 
+class Hedgehog(Combatant):
+    NAME = "Hedgehog"
+    DESCRIPTION = "Retaliates when\nattacked"
+    IDLE_SPRITE = "images/hedgehog_nice.png"
+    DEATH_SOUND_VOLUME = 1.0
+    COST = 10
+    HIT_POINTS = 15
+    BASE_DAMAGE = 5
+    SPINY = True
+
 class BigFrog(Combatant):
     IDLE_SPRITE = "images/bullfrog_nice.png"
     DEATH_SOUND_PATH = "audio/bullfrog.wav"
@@ -422,12 +435,12 @@ class Lizard(Combatant):
     BASE_RANGE = 350
     TARGET_DISTANCE_MIN = 250
     TARGET_DISTANCE_MAX = 350
-    ATTACK_SPEED = 0.4
+    ATTACK_SPEED = 0.35
     RADIUS = 50
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.since_last_attack -= random.random()*3 + 2
+        self.since_last_attack = -2
 
 
     def attack(self, other):
@@ -442,7 +455,6 @@ class Lizard(Combatant):
 
     def set_target_enemy(self, enemy):
         super().set_target_enemy(enemy)
-        self.since_last_attack = random.random() * (1/self.ATTACK_SPEED)  # start cooldown when approaching new enemy
 
 
 class Projectile(Combatant):
@@ -499,7 +511,7 @@ class Unicorn(Combatant):
     DEATH_SOUND_PATH = "audio/unicorn.wav"
 
     RADIUS = 120
-    ATTACK_SPEED = 0.2
+    ATTACK_SPEED = 0.25
     BASE_DAMAGE = 25
     BOUNCE_SPEED = 3
     MAX_SPEED = 60
@@ -525,6 +537,42 @@ class Bee(Combatant):
     FRICTION = 0.1
     ATTACK_SPEED = 1
     START_SLOW = False
+
+
+class Dragon(Combatant):
+    IDLE_SPRITE = "images/dragon_nice.png"
+    ATTACK_SOUND_PATH = "audio/lizard_spit.wav"
+    DEATH_SOUND_VOLUME = 1.0
+    NAME = "Dragon"
+    COST = 45
+    DESCRIPTION = "Rock rock,\nwho's there?"
+    HIT_POINTS = 30
+    BASE_DAMAGE = 10
+    MAX_SPEED = 100
+    RADIUS = 75
+    STRETCH_INTENSITY = 0.5
+    MASS = 400
+    BOUNCE_SPEED = 3
+    JUMP_HEIGHT = 0.8
+    TARGET_DISTANCE_MAX = 300
+    TARGET_DISTANCE_MIN = 200
+    BASE_RANGE = 300
+    TARGETS_MULTIPLE = True
+    ATTACK_SPEED = 0.65
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.since_last_attack = -2
+
+    def attack(self, other):
+        if self.destroyed or other.destroyed:
+            return
+        self.since_last_attack = random.random() * (1/self.ATTACK_SPEED) * 0.25
+        self.deal_damage_to(other)
+        diff = other.position - self.position
+        diff.scale_to(self.RADIUS)
+        self.combatant_collection.add(Rock(self.combatant_collection, (self.position+diff).get_position(), self.tribe, other))
+        self.attack_sound.play()
 
 
 class Beekeeper(Combatant):
@@ -567,4 +615,5 @@ TYPES = [
     Beekeeper,
     Unicorn,
     Seeker,
+    Hedgehog,
 ]
