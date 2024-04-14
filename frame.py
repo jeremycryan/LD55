@@ -38,8 +38,12 @@ class ArenaFrame(Frame):
         self.age = 0
         self.time_remaining = 4
         self.complete = False
-        self.edge = ImageManager.load("images/transition_edge.png")
-        self.edge_flipped = pygame.transform.rotate(self.edge, 180)
+
+
+        self.since_toast = 999
+        self.toast_surf = None
+
+
 
 
     def load(self):
@@ -53,6 +57,13 @@ class ArenaFrame(Frame):
                     else:
                         position = (random.random()*c.WINDOW_WIDTH*0.4 + c.WINDOW_WIDTH*0.6, random.random()*c.WINDOW_HEIGHT*0.8 + c.WINDOW_HEIGHT*0.1)
                     self.combatants.add_multiple([unit(self.combatants, position, tribe=team)])
+        self.edge = ImageManager.load("images/transition_edge.png")
+        self.edge_flipped = pygame.transform.rotate(self.edge, 180)
+        self.backdrop = ImageManager.load("images/backdrop.png").convert()
+        self.toast_font = pygame.font.Font("fonts/SpicySushi.ttf", 80)
+        self.toast("START")
+        self.toast_color = (41, 49, 76)
+
         # self.combatants.add_multiple([Frog(self.combatants, (random.random()*c.WINDOW_WIDTH*0.5, random.random()*c.WINDOW_HEIGHT), tribe=0) for _ in range(10)])
         # self.combatants.add_multiple([Frog(self.combatants, (random.random()*c.WINDOW_WIDTH*0.5 + c.WINDOW_WIDTH//2, random.random()*c.WINDOW_HEIGHT), tribe=1) for _ in range(5)])
         # self.combatants.add_multiple([Seeker(self.combatants, (random.random()*c.WINDOW_WIDTH*0.5, random.random()*c.WINDOW_HEIGHT), tribe=0) for _ in range(3)])
@@ -62,6 +73,7 @@ class ArenaFrame(Frame):
         # self.combatants.add_multiple([Beekeeper(self.combatants, (random.random()*c.WINDOW_WIDTH*0.5 + c.WINDOW_WIDTH//2, random.random()*c.WINDOW_HEIGHT), tribe=1) for _ in range(3)])
 
     def update(self, dt, events):
+        self.since_toast += dt
         self.age += dt
         if self.complete:
             self.time_remaining -= dt
@@ -76,10 +88,14 @@ class ArenaFrame(Frame):
     def win(self, tribe):
         if self.complete:
             return
+        winner = "YELLOW" if tribe==0 else "BLUE"
+        color = (176, 138, 0) if tribe == 0 else (87, 104, 164)
+        self.toast(f"{winner} TEAM WINS!", color, delay=1.5)
         self.complete = True
 
     def draw(self, surface, offset=(0, 0)):
-        surface.fill((128, 190, 128))
+        # surface.fill((128, 190, 128))
+        surface.blit(self.backdrop, offset)
         self.combatants.draw(surface, offset)
 
         threshold = 0.5
@@ -102,8 +118,32 @@ class ArenaFrame(Frame):
             surface.blit(self.edge, (x, y))
             pygame.draw.rect(surface, (41, 49, 76), pygame.Rect(0, 0, c.WINDOW_WIDTH, y))
 
+        self.draw_toast(surface, offset)
+
     def next_frame(self):
         return ShopFrame(self.game)
+
+    def toast(self, text, color = (41, 49, 76), delay = 0):
+        self.toast_color = color
+        self.since_toast = -delay
+        self.toast_surf = self.toast_font.render(text, True, (255, 255, 255))
+
+    def draw_toast(self, surface, offset=(0, 0)):
+        phase_1 = 0.3
+        phase_2 = 1.3
+        phase_3 = 1.6
+        max_height = 110
+        if self.since_toast > phase_3 or self.since_toast<=0:
+            return
+        if self.since_toast<phase_1:
+            height = max(self.since_toast/phase_1 * max_height, 1)
+        elif self.since_toast < phase_2:
+            height = max_height
+        else:
+            height = max((phase_3 - self.since_toast)/(phase_3 - phase_2) * max_height, 1)
+        pygame.draw.rect(surface, self.toast_color, pygame.Rect(0, c.WINDOW_HEIGHT//2 - height//2, c.WINDOW_WIDTH, height))
+        self.toast_surf.set_alpha(255 * height/max_height)
+        surface.blit(self.toast_surf, (c.WINDOW_WIDTH//2 - self.toast_surf.get_width()//2, c.WINDOW_HEIGHT//2 - self.toast_surf.get_height()//2 + 15*c.SCALE))
 
 class ShopFrame(Frame):
     def next_frame(self):
@@ -118,10 +158,12 @@ class ShopFrame(Frame):
 
         self.time_font = pygame.font.Font("fonts/SpicySushi.ttf", int(73*c.SCALE))
 
-        self.time_remaining = 60
+        self.time_remaining = 90
 
         self.preview_units_left = []
         self.preview_units_right = []
+        self.preview_units_left_age = []
+        self.preview_units_right_age = []
 
         self.panels = [
             Panel(Frog, Pose((500*c.SCALE, 650*c.SCALE))),
@@ -144,6 +186,7 @@ class ShopFrame(Frame):
 
         self.game.teams[0].append("jarm")
         self.game.teams[1].append("ppab")
+
         if c.DEBUG:
             for i in range(20):
                 unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
@@ -155,8 +198,8 @@ class ShopFrame(Frame):
     def update(self, dt, events):
         self.age += dt
 
-        if self.time_remaining > 5 and self.money[0] < 3 and self.money[1] < 3:
-            self.time_remaining = 0.01
+        if self.time_remaining > 5 and self.money[0] < 5 and self.money[1] < 5:
+            self.time_remaining = 5
 
         for panel in self.panels:
             panel.update(dt, events)
@@ -168,6 +211,13 @@ class ShopFrame(Frame):
         self.time_remaining -= dt
         if self.time_remaining <= -1.5:
             self.done = True
+
+        for i in range(len(self.preview_units_left_age)):
+            self.preview_units_left_age[i] += dt
+        for i in range(len(self.preview_units_right_age)):
+            self.preview_units_right_age[i] += dt
+
+
 
     def draw_clock(self, surface, offset=(0, 0)):
         surface.blit(self.clock, (c.WINDOW_WIDTH//2 - self.clock.get_width()//2, c.WINDOW_HEIGHT - self.clock.get_height()))
@@ -307,9 +357,15 @@ class ShopFrame(Frame):
     def add_preview_unit(self, team, creature):
         if team == 0:
             use_list = self.preview_units_left
+            age_list = self.preview_units_left_age
         else:
             use_list = self.preview_units_right
+            age_list = self.preview_units_right_age
         use_list.append(creature)
+        if not age_list:
+            age_list.append(0)
+            return
+        age_list.append(min(0, age_list[-1] - 0.25))
 
     def draw_previews(self, surface, offset=(0, 0)):
         center = 400*c.SCALE + offset[0], 480*c.SCALE + offset[1]
@@ -317,7 +373,9 @@ class ShopFrame(Frame):
         out_medium = 40*c.SCALE
         out_large = 100*c.SCALE
 
-        for i, creature in enumerate([j for j in self.preview_units_left[::-1] if j.RADIUS > 100]):
+        spawn_time = 1
+
+        for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_left, self.preview_units_left_age))[::-1] if j.RADIUS > 100]):
             i = len([j for j in self.preview_units_left[::-1] if j.RADIUS > 100]) - i - 1
             y = center[1] - 40
             distance_from_center = out_large * (i+1)//2
@@ -325,21 +383,35 @@ class ShopFrame(Frame):
             x = center[0] + direction*distance_from_center
             surf = ImageManager.load(creature.IDLE_SPRITE)
 
-            surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
+            squish = max(min(age*3, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1), 0.01)
+            surf = Combatant.squish_image(surf, squish)
+            if (age < spawn_time and age > 0):
+                mask = pygame.mask.from_surface(surf)
+                lighten = mask.to_surface(unsetcolor=(0, 0, 0), setcolor=(255, 255, 255))
+                lighten.set_colorkey((0, 0, 0))
+                lighten.set_alpha(255 - age*255)
+                surf.blit(lighten, (0, 0))
 
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
-        for i, creature in enumerate([j for j in self.preview_units_left[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]):
+        for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_left, self.preview_units_left_age))[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]):
             i = len([j for j in self.preview_units_left[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]) - i - 1
             y = center[1] - 20
             distance_from_center = out_medium * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
             surf = ImageManager.load(creature.IDLE_SPRITE)
-            surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
+            squish = max(min(age*3, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1), 0.01)
+            surf = Combatant.squish_image(surf, squish)
+            if (age < spawn_time and age > 0):
+                mask = pygame.mask.from_surface(surf)
+                lighten = mask.to_surface(unsetcolor=(0, 0, 0), setcolor=(255, 255, 255))
+                lighten.set_colorkey((0, 0, 0))
+                lighten.set_alpha(255 - age*255)
+                surf.blit(lighten, (0, 0))
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
-        for i, creature in enumerate([j for j in self.preview_units_left[::-1] if j.RADIUS <= 50]):
+        for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_left, self.preview_units_left_age))[::-1] if j.RADIUS <= 50]):
             row = 0
             i = len([j for j in self.preview_units_left if j.RADIUS <= 50]) - i - 1
             if i > 20:
@@ -350,12 +422,19 @@ class ShopFrame(Frame):
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
             surf = ImageManager.load(creature.IDLE_SPRITE)
-            surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
+            squish = max(min(age*3, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1), 0.01)
+            surf = Combatant.squish_image(surf, squish)
+            if (age < spawn_time and age > 0):
+                mask = pygame.mask.from_surface(surf)
+                lighten = mask.to_surface(unsetcolor=(0, 0, 0), setcolor=(255, 255, 255))
+                lighten.set_colorkey((0, 0, 0))
+                lighten.set_alpha(255 - age*255)
+                surf.blit(lighten, (0, 0))
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
         center = c.WINDOW_WIDTH - 400*c.SCALE + offset[0], 480*c.SCALE + offset[1]
 
-        for i, creature in enumerate([j for j in self.preview_units_right[::-1] if j.RADIUS > 100]):
+        for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_right, self.preview_units_right_age))[::-1] if j.RADIUS > 100]):
             i = len([j for j in self.preview_units_right[::-1] if j.RADIUS > 100]) - i - 1
             y = center[1] - 40*c.SCALE
             distance_from_center = out_large * (i+1)//2
@@ -363,21 +442,35 @@ class ShopFrame(Frame):
             x = center[0] + direction*distance_from_center
             surf = ImageManager.load(creature.IDLE_SPRITE)
 
-            surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
+            squish = max(min(age*3, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1), 0.01)
+            surf = Combatant.squish_image(surf, squish)
+            if (age < spawn_time and age > 0):
+                mask = pygame.mask.from_surface(surf)
+                lighten = mask.to_surface(unsetcolor=(0, 0, 0), setcolor=(255, 255, 255))
+                lighten.set_colorkey((0, 0, 0))
+                lighten.set_alpha(255 - age*255)
+                surf.blit(lighten, (0, 0))
 
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
-        for i, creature in enumerate([j for j in self.preview_units_right[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]):
+        for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_right, self.preview_units_right_age))[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]):
             i = len([j for j in self.preview_units_right[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]) - i - 1
             y = center[1] - 20*c.SCALE
             distance_from_center = out_medium * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
             surf = ImageManager.load(creature.IDLE_SPRITE)
-            surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
+            squish = max(min(age*3, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1), 0.01)
+            surf = Combatant.squish_image(surf, squish)
+            if (age < spawn_time and age > 0):
+                mask = pygame.mask.from_surface(surf)
+                lighten = mask.to_surface(unsetcolor=(0, 0, 0), setcolor=(255, 255, 255))
+                lighten.set_colorkey((0, 0, 0))
+                lighten.set_alpha(255 - age*255)
+                surf.blit(lighten, (0, 0))
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
-        for i, creature in enumerate([j for j in self.preview_units_right[::-1] if j.RADIUS <= 50]):
+        for i, (creature, age) in enumerate([(j, k) for (j, k) in list(zip(self.preview_units_right, self.preview_units_right_age))[::-1] if j.RADIUS <= 50]):
             row = 0
             i = len([j for j in self.preview_units_right if j.RADIUS <= 50]) - i - 1
             if i > 20:
@@ -388,7 +481,14 @@ class ShopFrame(Frame):
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
             surf = ImageManager.load(creature.IDLE_SPRITE)
-            surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
+            squish = max(min(age*3, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1), 0.01)
+            surf = Combatant.squish_image(surf, squish)
+            if (age < spawn_time and age > 0):
+                mask = pygame.mask.from_surface(surf)
+                lighten = mask.to_surface(unsetcolor=(0, 0, 0), setcolor=(255, 255, 255))
+                lighten.set_colorkey((0, 0, 0))
+                lighten.set_alpha(255 - age*255)
+                surf.blit(lighten, (0, 0))
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
 

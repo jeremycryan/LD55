@@ -19,10 +19,20 @@ class Game:
         self.screen = pygame.display.set_mode(c.DISPLAY_SIZE)
         pygame.display.set_caption(c.CAPTION)
         self.clock = pygame.time.Clock()
+        self.teams = {0:[], 1:[]}
+        pygame.mixer.music.load("audio/music.ogg")
+        pygame.mixer.music.play(-1)
+
+        self.stream = None
+        self.restart_stream()
+
+        asyncio.run(self.main())
+
+    def restart_stream(self):
+        if self.stream:
+            self.stream.close()
         self.stream = Stream()
         self.stream.open("plasmastarfish")
-        self.teams = {0:[], 1:[]}
-        asyncio.run(self.main())
 
     async def main(self):
         current_frame = f.ShopFrame(self)

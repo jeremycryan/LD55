@@ -8,11 +8,16 @@ from image_manager import ImageManager
 from primitives import Pose
 import random
 import constants as c
+from sound_manager import SoundManager
 
 
 class Combatant:
     NAME = "Combatant"
     DESCRIPTION = "Remains mysterious"
+    DEATH_SOUND_PATH = None
+    ATTACK_SOUND_PATH = None
+    DEATH_SOUND_VOLUME = 0.5
+    ATTACK_SOUND_VOLUME = 0.5
     COST = 999
     FRICTION = 0.3
     RADIUS = 40
@@ -48,6 +53,16 @@ class Combatant:
         self.velocity = Pose((0, 0))
         self.destroyed = False
         self.age = 0
+
+        self.death_sound = SoundManager.load(self.DEATH_SOUND_PATH) if self.DEATH_SOUND_PATH else None
+        if self.death_sound:
+            self.death_sound.set_volume(self.DEATH_SOUND_VOLUME)
+        self.attack_sound = SoundManager.load(self.ATTACK_SOUND_PATH) if self.ATTACK_SOUND_PATH else None
+        if self.attack_sound:
+            self.attack_sound.set_volume(self.ATTACK_SOUND_VOLUME)
+
+        self.hit_sound = SoundManager.load("audio/hit.wav")
+        self.hit_sound.set_volume(0.1)
 
         self.hit_points = self.HIT_POINTS
 
@@ -91,6 +106,7 @@ class Combatant:
         if self.hit_points<=0:
             self.die()
         self.blink()
+        self.hit_sound.play()
 
     def load_sprite(self):
         sprite = Sprite()
@@ -103,13 +119,13 @@ class Combatant:
 
     def draw_shadow(self, surface, offset=(0, 0)):
         mult = abs(self.animation_offset.y)/self.RADIUS * 0.5 + 1
-        shadow = pygame.Surface((self.RADIUS * 2/mult*c.SCALE, self.RADIUS/mult*c.SCALE))
+        shadow = pygame.Surface((self.RADIUS * 2/mult, self.RADIUS/mult))
         shadow.fill((255, 0, 0))
         shadow.set_colorkey((255, 0, 0))
-        shadow.set_alpha(50)
+        shadow.set_alpha(40)
         pygame.draw.ellipse(shadow, (0, 0, 0), shadow.get_rect())
         x = offset[0] + self.position.x - shadow.get_width()//2
-        y = offset[0] + self.position.y + self.RADIUS*0.8*c.SCALE - shadow.get_height()*0.5
+        y = offset[0] + self.position.y + self.RADIUS*0.8 - shadow.get_height()*0.7
         surface.blit(shadow, (x, y))
 
     def draw(self, surface, offset=(0, 0)):
@@ -321,6 +337,10 @@ class Combatant:
         return self.position.y + self.RADIUS
 
     def die(self):
+        if self.destroyed:
+            return
+        if self.death_sound:
+            self.death_sound.play()
         self.velocity.scale_to(0)
         self.blink()
         self.destroyed = True
@@ -367,11 +387,15 @@ class Combatant:
 class Frog(Combatant):
     NAME = "Frog"
     DESCRIPTION = "A small but\nloyal soldier"
-    COST = 3
+    DEATH_SOUND_PATH = "audio/frog.wav"
+    DEATH_SOUND_VOLUME = 1.0
+    COST = 5
     pass
 
 class BigFrog(Combatant):
     IDLE_SPRITE = "images/bullfrog_nice.png"
+    DEATH_SOUND_PATH = "audio/bullfrog.wav"
+    DEATH_SOUND_VOLUME = 1.0
     NAME = "Bullfrog"
     COST = 10
     DESCRIPTION = "Heavy, powerful,\nand full of rage"
@@ -389,19 +413,21 @@ class Lizard(Combatant):
     NAME = "Lizard"
     COST = 12
     DESCRIPTION = "Throws rocks,\nthrives in chaos"
+    DEATH_SOUND_PATH = "audio/lizard.wav"
+    ATTACK_SOUND_PATH = "audio/lizard_spit.wav"
     HIT_POINTS = 10
-    BASE_DAMAGE = 5
-    MAX_SPEED = 120
-    ACCELERATION = 600
+    BASE_DAMAGE = 6
+    MAX_SPEED = 150
+    ACCELERATION = 700
     BASE_RANGE = 350
     TARGET_DISTANCE_MIN = 250
     TARGET_DISTANCE_MAX = 350
-    ATTACK_SPEED = 0.25
+    ATTACK_SPEED = 0.4
     RADIUS = 50
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.since_last_attack -= random.random()
+        self.since_last_attack -= random.random()*3 + 2
 
 
     def attack(self, other):
@@ -412,6 +438,7 @@ class Lizard(Combatant):
         diff = other.position - self.position
         diff.scale_to(self.RADIUS)
         self.combatant_collection.add(Rock(self.combatant_collection, (self.position+diff).get_position(), self.tribe, other))
+        self.attack_sound.play()
 
     def set_target_enemy(self, enemy):
         super().set_target_enemy(enemy)
@@ -454,6 +481,7 @@ class Seeker(Combatant):
     DESCRIPTION = "Very fast, but\nnot very smart"
     NAME = "Bunny"
     COST = 10
+    DEATH_SOUND_PATH = "audio/bunny.wav"
 
     MAX_SPEED = 400
     ACCELERATION = 1500
@@ -466,8 +494,9 @@ class Seeker(Combatant):
 class Unicorn(Combatant):
     IDLE_SPRITE = "images/unicorn_nice.png"
     NAME = "Unicorn"
-    COST = 35
+    COST = 30
     DESCRIPTION = "A big lad with\nbig dreams"
+    DEATH_SOUND_PATH = "audio/unicorn.wav"
 
     RADIUS = 120
     ATTACK_SPEED = 0.2
@@ -494,7 +523,7 @@ class Bee(Combatant):
     MASS = 20
     ACCELERATION = 1000
     FRICTION = 0.1
-    ATTACK_SPEED = 0.6
+    ATTACK_SPEED = 1
     START_SLOW = False
 
 
@@ -503,30 +532,33 @@ class Beekeeper(Combatant):
     NAME = "Bear"
     COST = 15
     DESCRIPTION = "Likes bees more\nthan people"
+    ATTACK_SOUND_PATH = "audio/bee_spawn.wav"
+    ATTACK_SOUND_VOLUME = 0.2
 
     TARGET_DISTANCE_MIN = 350
     TARGET_DISTANCE_MAX = 450
 
-    BASE_DAMAGE = 1
+    BASE_DAMAGE = 3
     HIT_POINTS = 18
     RADIUS = 40
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.since_bee = random.random() * 1 + 0.5
+        self.since_bee = random.random() * 1
 
     def update(self, dt, events):
         super().update(dt, events)
         if self.destroyed:
             return
         self.since_bee += dt
-        if self.since_bee > 3.5:
+        if self.since_bee > 2:
             self.bee()
 
     def bee(self):
         self.combatant_collection.add(
             Bee(self.combatant_collection, (self.position + Pose((random.random()*60 - 30, random.random()*60 - 30))).get_position(), self.tribe))
         self.since_bee = random.random() - 0.5
+        self.attack_sound.play()
 
 TYPES = [
     Frog,
