@@ -37,6 +37,10 @@ class Combatant:
     START_SLOW = True
 
     def __init__(self, combatant_collection, position, tribe=0):
+        self.RADIUS *= c.SCALE
+        self.TARGET_DISTANCE_MIN *= c.SCALE
+        self.TARGET_DISTANCE_MAX *= c.SCALE
+
         self.particles = []
         self.sprite = self.load_sprite()
         self.position = Pose(position)
@@ -99,13 +103,13 @@ class Combatant:
 
     def draw_shadow(self, surface, offset=(0, 0)):
         mult = abs(self.animation_offset.y)/self.RADIUS * 0.5 + 1
-        shadow = pygame.Surface((self.RADIUS * 2/mult, self.RADIUS/mult))
+        shadow = pygame.Surface((self.RADIUS * 2/mult*c.SCALE, self.RADIUS/mult*c.SCALE))
         shadow.fill((255, 0, 0))
         shadow.set_colorkey((255, 0, 0))
         shadow.set_alpha(50)
         pygame.draw.ellipse(shadow, (0, 0, 0), shadow.get_rect())
         x = offset[0] + self.position.x - shadow.get_width()//2
-        y = offset[0] + self.position.y + self.RADIUS*0.8 - shadow.get_height()*0.5
+        y = offset[0] + self.position.y + self.RADIUS*0.8*c.SCALE - shadow.get_height()*0.5
         surface.blit(shadow, (x, y))
 
     def draw(self, surface, offset=(0, 0)):
@@ -294,7 +298,7 @@ class Combatant:
 
     def update_position(self, dt, events):
         self.previous_position = self.position.copy()
-        self.position += self.velocity*dt
+        self.position += self.velocity*dt*c.SCALE
         if self.position.x < 0:
             self.position.x = 0
             self.take_damage(10)
@@ -332,7 +336,7 @@ class Combatant:
         speed_factor = self.get_animation_intensity()
         self.step_period += dt * math.pi * self.BOUNCE_SPEED * speed_factor
         self.animation_offset.angle = math.sin(self.step_period) * self.WALK_ANGLE * speed_factor
-        self.animation_offset.y = -abs(math.cos(self.step_period)) * self.RADIUS * self.JUMP_HEIGHT * speed_factor
+        self.animation_offset.y = -abs(math.cos(self.step_period)) * self.RADIUS * self.JUMP_HEIGHT * speed_factor*c.SCALE
         self.check_step()
 
     def get_animation_intensity(self):
@@ -355,7 +359,7 @@ class Combatant:
     def draw_outline(self, surface, mask, position):
         points = mask.outline(5)
         points = tuple((x+position[0], y+position[1]) for (x, y) in points)
-        width = 8
+        width = int(8*c.SCALE)
         for point in points:
             pygame.draw.circle(surface, c.TEAM_COLORS[self.tribe], point, width)
         pygame.draw.polygon(surface, c.TEAM_COLORS[self.tribe], points, width)

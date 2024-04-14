@@ -114,9 +114,9 @@ class ShopFrame(Frame):
         self.teams = ImageManager.load("images/team_names.png")
 
         self.cauldron = ImageManager.load_copy("images/cauldron.png")
-        self.cost_font = pygame.font.Font("fonts/SpicySushi.ttf", 60)
+        self.cost_font = pygame.font.Font("fonts/SpicySushi.ttf", int(60*c.SCALE))
 
-        self.time_font = pygame.font.Font("fonts/SpicySushi.ttf", 73)
+        self.time_font = pygame.font.Font("fonts/SpicySushi.ttf", int(73*c.SCALE))
 
         self.time_remaining = 60
 
@@ -124,12 +124,12 @@ class ShopFrame(Frame):
         self.preview_units_right = []
 
         self.panels = [
-            Panel(Frog, Pose((500, 650))),
-            Panel(Seeker, Pose((c.WINDOW_WIDTH//2, 650))),
-            Panel(Beekeeper, Pose((c.WINDOW_WIDTH - 500, 650))),
-            Panel(BigFrog, Pose((500, 900))),
-            Panel(Lizard, Pose((c.WINDOW_WIDTH//2, 900))),
-            Panel(Unicorn, Pose((c.WINDOW_WIDTH - 500, 900))),
+            Panel(Frog, Pose((500*c.SCALE, 650*c.SCALE))),
+            Panel(Seeker, Pose((c.WINDOW_WIDTH//2, 650*c.SCALE))),
+            Panel(Beekeeper, Pose((c.WINDOW_WIDTH - 500*c.SCALE, 650*c.SCALE))),
+            Panel(BigFrog, Pose((500*c.SCALE, 900*c.SCALE))),
+            Panel(Lizard, Pose((c.WINDOW_WIDTH//2, 900*c.SCALE))),
+            Panel(Unicorn, Pose((c.WINDOW_WIDTH - 500*c.SCALE, 900*c.SCALE))),
         ]
 
 
@@ -180,7 +180,7 @@ class ShopFrame(Frame):
             color = (255, 0, 114)
         text = self.time_font.render(f"{time_left}", True, color)
         text = pygame.transform.scale(text, (text.get_width()*scale, text.get_height()*scale))
-        surface.blit(text, (c.WINDOW_WIDTH//2 - text.get_width()//2, c.WINDOW_HEIGHT - 30 - text.get_height()//2))
+        surface.blit(text, (c.WINDOW_WIDTH//2 - text.get_width()//2, c.WINDOW_HEIGHT - 30*c.SCALE - text.get_height()//2))
 
         pass
 
@@ -204,26 +204,26 @@ class ShopFrame(Frame):
         cauldron_surf = self.cauldron.copy()
         cauldron_surf.blit(cost_surf,
                            (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
-                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 15))
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 15*c.SCALE))
         cost_surf = self.cost_font.render(f"{self.money[0]}", True, (255, 255, 255))
         cauldron_surf.blit(cost_surf,
                            (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
-                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 10))
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 10*c.SCALE))
 
-        x, y = (120 - self.cauldron.get_width() // 2, 120 - self.cauldron.get_height() // 2)
+        x, y = (120*c.SCALE - self.cauldron.get_width() // 2, 120*c.SCALE - self.cauldron.get_height() // 2)
         surface.blit(cauldron_surf, (x + offset[0], y + offset[1]))
 
         cost_surf = self.cost_font.render(f"{self.money[1]}", True, (80, 60, 100))
         cauldron_surf = self.cauldron.copy()
         cauldron_surf.blit(cost_surf,
                            (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
-                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 15))
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 15*c.SCALE))
         cost_surf = self.cost_font.render(f"{self.money[1]}", True, (255, 255, 255))
         cauldron_surf.blit(cost_surf,
                            (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
-                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 10))
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 10*c.SCALE))
 
-        x, y = (c.WINDOW_WIDTH - 120 - self.cauldron.get_width() // 2, 120 - self.cauldron.get_height() // 2)
+        x, y = (c.WINDOW_WIDTH - 120*c.SCALE - self.cauldron.get_width() // 2, 120*c.SCALE - self.cauldron.get_height() // 2)
         surface.blit(cauldron_surf, (x + offset[0], y + offset[1]))
 
     def draw_wipe(self, surface, offset=(0, 0)):
@@ -235,7 +235,7 @@ class ShopFrame(Frame):
             y = c.WINDOW_HEIGHT - through * (c.WINDOW_HEIGHT + self.edge.get_height())
             x = 0
             surface.blit(self.edge_flipped, (x, y - self.edge_flipped.get_height()))
-            pygame.draw.rect(surface, (41, 49, 76), pygame.Rect(0, y, c.WINDOW_WIDTH, c.WINDOW_HEIGHT - y))
+            pygame.draw.rect(surface, (41, 49, 76), pygame.Rect(0, y, c.WINDOW_WIDTH, c.WINDOW_HEIGHT + 3 - y))
 
         threshold = 0.5
         if self.time_remaining < threshold:
@@ -312,10 +312,10 @@ class ShopFrame(Frame):
         use_list.append(creature)
 
     def draw_previews(self, surface, offset=(0, 0)):
-        center = 400 + offset[0], 480 + offset[1]
-        out_small = 30
-        out_medium = 40
-        out_large = 100
+        center = 400*c.SCALE + offset[0], 480*c.SCALE + offset[1]
+        out_small = 30*c.SCALE
+        out_medium = 40*c.SCALE
+        out_large = 100*c.SCALE
 
         for i, creature in enumerate([j for j in self.preview_units_left[::-1] if j.RADIUS > 100]):
             i = len([j for j in self.preview_units_left[::-1] if j.RADIUS > 100]) - i - 1
@@ -345,7 +345,7 @@ class ShopFrame(Frame):
             if i > 20:
                 row = 1
                 i = i%20
-            y = center[1] - row*30
+            y = center[1] - row*30*c.SCALE
             distance_from_center = out_small * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
@@ -353,14 +353,11 @@ class ShopFrame(Frame):
             surf = Combatant.squish_image(surf, math.sin(time.time()*2*creature.BOUNCE_SPEED + i)*0.1 + 1)
             surface.blit(surf, (x - surf.get_width()//2, y - surf.get_height()))
 
-        center = c.WINDOW_WIDTH - 400 + offset[0], 480 + offset[1]
-        out_small = 30
-        out_medium = 40
-        out_large = 100
+        center = c.WINDOW_WIDTH - 400*c.SCALE + offset[0], 480*c.SCALE + offset[1]
 
         for i, creature in enumerate([j for j in self.preview_units_right[::-1] if j.RADIUS > 100]):
             i = len([j for j in self.preview_units_right[::-1] if j.RADIUS > 100]) - i - 1
-            y = center[1] - 40
+            y = center[1] - 40*c.SCALE
             distance_from_center = out_large * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
@@ -372,7 +369,7 @@ class ShopFrame(Frame):
 
         for i, creature in enumerate([j for j in self.preview_units_right[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]):
             i = len([j for j in self.preview_units_right[::-1] if j.RADIUS <= 100 and j.RADIUS > 50]) - i - 1
-            y = center[1] - 20
+            y = center[1] - 20*c.SCALE
             distance_from_center = out_medium * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center
@@ -386,7 +383,7 @@ class ShopFrame(Frame):
             if i > 20:
                 row = 1
                 i = i%20
-            y = center[1] - row*30
+            y = center[1] - row*30*c.SCALE
             distance_from_center = out_small * (i+1)//2
             direction = 1 if i%2 else -1
             x = center[0] + direction*distance_from_center

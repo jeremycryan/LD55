@@ -1,5 +1,5 @@
 import pygame
-
+import constants as c
 
 class ImageManager:
     """
@@ -49,6 +49,7 @@ class ImageManager:
         if path in ImageManager.sounds:
             return ImageManager.sounds[path]
         sound = pygame.image.load(path).convert_alpha()
+        sound = pygame.transform.smoothscale(sound, (sound.get_width() * c.SCALE, sound.get_height() * c.SCALE))
         ImageManager.sounds[path] = sound
         return sound
 
