@@ -158,7 +158,7 @@ class ShopFrame(Frame):
 
         self.time_font = pygame.font.Font("fonts/SpicySushi.ttf", int(73*c.SCALE))
 
-        self.time_remaining = 5
+        self.time_remaining = 90
 
         self.preview_units_left = []
         self.preview_units_right = []
