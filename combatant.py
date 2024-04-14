@@ -592,20 +592,20 @@ class Beekeeper(Combatant):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.since_bee = random.random() * 1
+        self.since_bee = -2 - random.random()
 
     def update(self, dt, events):
         super().update(dt, events)
         if self.destroyed:
             return
         self.since_bee += dt
-        if self.since_bee > 1:
+        if self.since_bee > 1.25:
             self.bee()
 
     def bee(self):
         self.combatant_collection.add(
             Bee(self.combatant_collection, (self.position + Pose((random.random()*60 - 30, random.random()*60 - 30))).get_position(), self.tribe))
-        self.since_bee = random.random() - 0.5
+        self.since_bee = (random.random() - 0.5)/2
         self.attack_sound.play()
 
 TYPES = [
