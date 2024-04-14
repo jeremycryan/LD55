@@ -74,6 +74,7 @@ class Game:
         messages = self.stream.queue_flush()
         for message in messages:
             events.append(CustomEvent(message))
+            print(message)
 
         return dt, events
 

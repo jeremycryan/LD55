@@ -33,6 +33,8 @@ class Stream:
         """ Open a socket connection to the given channel, send information
             over IRC, and start populating self.queue with data.
         """
+        print(f"Active threads: {threading.active_count()}")
+
         self.channel = f"#{channel}"
         self._queue = []
         self.running = True

@@ -102,7 +102,7 @@ class Combatant:
     def deal_damage_to(self, other):
         other.take_damage(self.BASE_DAMAGE)
         if other.SPINY:
-            self.take_damage(int(self.BASE_DAMAGE*0.8))
+            self.take_damage(int(self.BASE_DAMAGE*1.0))
 
     def take_damage(self, amt):
         self.hit_points -= amt
@@ -544,7 +544,7 @@ class Dragon(Combatant):
     ATTACK_SOUND_PATH = "audio/lizard_spit.wav"
     DEATH_SOUND_VOLUME = 1.0
     NAME = "Dragon"
-    COST = 45
+    COST = 50
     DESCRIPTION = "Rock rock,\nwho's there?"
     HIT_POINTS = 30
     BASE_DAMAGE = 10
