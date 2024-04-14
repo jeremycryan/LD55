@@ -7,6 +7,9 @@ from sound_manager import SoundManager
 from image_manager import ImageManager
 import asyncio
 
+from twitch_stream_chat import Stream
+
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -16,10 +19,13 @@ class Game:
         self.screen = pygame.display.set_mode(c.DISPLAY_SIZE)
         pygame.display.set_caption(c.CAPTION)
         self.clock = pygame.time.Clock()
+        self.stream = Stream()
+        self.stream.open("plasmastarfish")
+        self.teams = {0:[], 1:[]}
         asyncio.run(self.main())
 
     async def main(self):
-        current_frame = f.ArenaFrame(self)
+        current_frame = f.ShopFrame(self)
         current_frame.load()
         self.clock.tick(60)
 
@@ -52,7 +58,17 @@ class Game:
                 if event.key == pygame.K_F4:
                     pygame.display.toggle_fullscreen()
 
+        messages = self.stream.queue_flush()
+        for message in messages:
+            events.append(CustomEvent(message))
+
         return dt, events
+
+
+class CustomEvent:
+    def __init__(self, message):
+        self.type = "Twitch"
+        self.message = message
 
 
 if __name__=="__main__":

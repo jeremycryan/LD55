@@ -12,6 +12,8 @@ import constants as c
 
 class Combatant:
     NAME = "Combatant"
+    DESCRIPTION = "Remains mysterious"
+    COST = 999
     FRICTION = 0.3
     RADIUS = 40
     ACCELERATION = 400
@@ -342,11 +344,15 @@ class Combatant:
 
 class Frog(Combatant):
     NAME = "Frog"
+    DESCRIPTION = "A small but\nloyal soldier"
+    COST = 3
     pass
 
 class BigFrog(Combatant):
     IDLE_SPRITE = "images/bullfrog_nice.png"
     NAME = "Bullfrog"
+    COST = 10
+    DESCRIPTION = "Heavy, powerful,\nand full of rage"
     HIT_POINTS = 40
     BASE_DAMAGE = 8
     MAX_SPEED = 100
@@ -359,6 +365,8 @@ class BigFrog(Combatant):
 class Lizard(Combatant):
     IDLE_SPRITE = "images/lizard_nice.png"
     NAME = "Lizard"
+    COST = 12
+    DESCRIPTION = "Throws rocks,\nthrives in chaos"
     HIT_POINTS = 10
     BASE_DAMAGE = 5
     MAX_SPEED = 120
@@ -419,7 +427,9 @@ class Rock(Projectile):
 
 class Seeker(Combatant):
     IDLE_SPRITE = "images/bun_nice.png"
-    NAME = "Bun"
+    DESCRIPTION = "Very fast, but\nnot very smart"
+    NAME = "Bunny"
+    COST = 10
 
     MAX_SPEED = 400
     ACCELERATION = 1500
@@ -432,6 +442,8 @@ class Seeker(Combatant):
 class Unicorn(Combatant):
     IDLE_SPRITE = "images/unicorn_nice.png"
     NAME = "Unicorn"
+    COST = 35
+    DESCRIPTION = "A big lad with\nbig dreams"
 
     RADIUS = 120
     ATTACK_SPEED = 0.2
@@ -463,7 +475,9 @@ class Bee(Combatant):
 
 class Beekeeper(Combatant):
     IDLE_SPRITE = "images/beekeeper_nice.png"
-    NAME = "Beekeeper"
+    NAME = "Bear"
+    COST = 15
+    DESCRIPTION = "Likes bees more\nthan people"
 
     TARGET_DISTANCE_MIN = 300
     TARGET_DISTANCE_MAX = 400
