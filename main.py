@@ -26,7 +26,7 @@ class Game:
         self.stream = None
         self.restart_stream()
 
-        asyncio.run(self.main())
+        self.main()
 
     def restart_stream(self):
         if self.stream:
@@ -34,14 +34,13 @@ class Game:
         self.stream = Stream()
         self.stream.open("plasmastarfish")
 
-    async def main(self):
+    def main(self):
         current_frame = f.ShopFrame(self)
         current_frame.load()
         self.clock.tick(60)
 
         while True:
             dt, events = self.get_events()
-            await asyncio.sleep(0)
             if dt == 0:
                 dt = 1/100000
             pygame.display.set_caption(f"{c.CAPTION} ({int(1/dt)} FPS)")
