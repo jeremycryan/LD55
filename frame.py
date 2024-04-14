@@ -90,7 +90,7 @@ class ArenaFrame(Frame):
             y = c.WINDOW_HEIGHT - through * (c.WINDOW_HEIGHT + self.edge.get_height())
             x = 0
             surface.blit(self.edge_flipped, (x, y - self.edge_flipped.get_height()))
-            pygame.draw.rect(surface, (41, 49, 76), pygame.Rect(0, y, c.WINDOW_WIDTH, c.WINDOW_HEIGHT - y))
+            pygame.draw.rect(surface, (41, 49, 76), pygame.Rect(0, y, c.WINDOW_WIDTH, c.WINDOW_HEIGHT - y + 5))
 
         threshold = 0.5
         if self.time_remaining < threshold:
