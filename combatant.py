@@ -586,7 +586,7 @@ class Beekeeper(Combatant):
     TARGET_DISTANCE_MIN = 350
     TARGET_DISTANCE_MAX = 450
 
-    BASE_DAMAGE = 3
+    BASE_DAMAGE = 5
     HIT_POINTS = 18
     RADIUS = 40
 
@@ -599,7 +599,7 @@ class Beekeeper(Combatant):
         if self.destroyed:
             return
         self.since_bee += dt
-        if self.since_bee > 2:
+        if self.since_bee > 1:
             self.bee()
 
     def bee(self):

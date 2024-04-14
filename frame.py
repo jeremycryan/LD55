@@ -150,6 +150,8 @@ class ShopFrame(Frame):
         return ArenaFrame(self.game, self.summons)
 
     def load(self):
+        self.game.restart_stream()
+
         self.background = ImageManager.load("images/shop_background_2.png").convert()
         self.teams = ImageManager.load("images/team_names.png")
 
