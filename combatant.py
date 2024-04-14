@@ -616,4 +616,5 @@ TYPES = [
     Unicorn,
     Seeker,
     Hedgehog,
+    Dragon,
 ]
