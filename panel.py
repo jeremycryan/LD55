@@ -31,6 +31,18 @@ class Panel:
             (self.cauldron_surf.get_width()//2 - cost_surf.get_width()//2,
             self.cauldron_surf.get_height()//2 - cost_surf.get_height()//2 + 10))
 
+        self.master_surf = pygame.Surface((self.back_surf.get_width() + 50, self.back_surf.get_height()+50)).convert_alpha() # .back_surf.copy()
+        self.master_surf.fill((0, 0, 0, 0))
+        x = self.master_surf.get_width()//2
+        y = self.master_surf.get_height()//2
+        self.master_surf.blit(self.back_surf, (x - self.back_surf.get_width()//2, y - self.back_surf.get_height()//2))
+        self.master_surf.blit(self.unit_surf, (x - 85 - self.unit_surf.get_width()//2, y - self.unit_surf.get_height()//2))
+        self.master_surf.blit(self.name_surf, (x + 20, y - self.back_surf.get_height()//2 + 60))
+        self.master_surf.blit(self.cauldron_surf, (x - self.back_surf.get_width()//2 - 20, y - self.back_surf.get_height()//2 - 20))
+        for surf in self.body_surfs:
+            self.master_surf.blit(surf, (x + 20, y - self.back_surf.get_height() // 2 + 120))
+            y += 25
+
 
     def update(self, dt, events):
         pass
@@ -42,11 +54,9 @@ class Panel:
 
         x = self.position.x + offset[0] + xadd
         y = self.position.y + offset[1] + yadd
-        surface.blit(self.back_surf, (x - self.back_surf.get_width()//2, y - self.back_surf.get_height()//2))
-        surface.blit(self.unit_surf, (x - 85 - self.unit_surf.get_width()//2, y - self.unit_surf.get_height()//2))
-        surface.blit(self.name_surf, (x + 20, y - self.back_surf.get_height()//2 + 60))
-        surface.blit(self.cauldron_surf, (x - self.back_surf.get_width()//2 - 20, y - self.back_surf.get_height()//2 - 20))
+        surface.blit(self.master_surf, (x - self.master_surf.get_width()//2, y - self.master_surf.get_height()//2))
+        # surface.blit(self.back_surf, (x - self.back_surf.get_width()//2, y - self.back_surf.get_height()//2))
+        # surface.blit(self.unit_surf, (x - 85 - self.unit_surf.get_width()//2, y - self.unit_surf.get_height()//2))
+        # surface.blit(self.name_surf, (x + 20, y - self.back_surf.get_height()//2 + 60))
+        # surface.blit(self.cauldron_surf, (x - self.back_surf.get_width()//2 - 20, y - self.back_surf.get_height()//2 - 20))
 
-        for surf in self.body_surfs:
-            surface.blit(surf, (x + 20, y - self.back_surf.get_height() // 2 + 120))
-            y += 25

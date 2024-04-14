@@ -34,6 +34,7 @@ class Combatant:
     TARGET_DISTANCE_MAX = 0
     TARGET_ANGLE_SPREAD = 30
     MASS = 100
+    START_SLOW = True
 
     def __init__(self, combatant_collection, position, tribe=0):
         self.particles = []
@@ -42,6 +43,7 @@ class Combatant:
         self.animation_offset = Pose((0, 0))
         self.velocity = Pose((0, 0))
         self.destroyed = False
+        self.age = 0
 
         self.hit_points = self.HIT_POINTS
 
@@ -64,6 +66,8 @@ class Combatant:
 
         self.target_angle_to_enemy = 0
         self.target_distance_to_enemy = 0
+
+        self.nearby_combatants = []
 
     def blink(self):
         self.since_blink = 0
@@ -138,21 +142,29 @@ class Combatant:
         return pygame.transform.scale(image, (image.get_width()*width_factor, image.get_height()*height_factor))
 
     def update(self, dt, events):
+        self.nearby_combatants = self.combatant_collection.get_nearby_combatants(self.position)
+
+        self.age += dt
         self.since_last_attack += dt
         self.since_blink += dt
 
-        self.update_target_position()
-        self.update_position(dt, events)
-        self.update_velocity(dt, events)
-        self.update_animation(dt, events)
+        if not self.destroyed:
+            self.update_target_position()
+            self.update_position(dt, events)
+            self.update_velocity(dt, events)
+            self.update_animation(dt, events)
 
-        for particle in self.particles:
+        threshold = 1.5
+        if self.age < threshold and self.START_SLOW:
+            self.velocity *= self.age/threshold
+
+        for particle in self.particles[:]:
             particle.update(dt, events)
-
+            if particle.destroyed:
+                self.particles.remove(particle)
 
     def update_target_position(self):
-        enemies = self.combatant_collection.get_nearby_combatants(self.position, tribe_to_exclude=self.tribe)
-        enemies = [enemy for enemy in enemies if enemy.TARGETABLE]
+        enemies = [i for i in self.nearby_combatants if i.tribe != self.tribe and i.TARGETABLE]
         if self.target_enemy == None or self.target_enemy.destroyed:
             if not enemies:
                 self.target_enemy = None
@@ -189,9 +201,10 @@ class Combatant:
     def check_attack(self, enemies):
         if self.destroyed:
             return
-        if not enemies:
-            enemies = self.combatant_collection.get_nearby_combatants(self.position, tribe_to_exclude=self.tribe)
-            enemies = [enemy for enemy in enemies if enemy.TARGETABLE]
+        # if not enemies:
+        #     raise Exception("Not supposed to happen")
+        #     enemies = self.combatant_collection.get_nearby_combatants(self.position, tribe_to_exclude=self.tribe)
+        #     enemies = [enemy for enemy in enemies if enemy.TARGETABLE]
         if (self.since_last_attack > (1/self.ATTACK_SPEED)):
             enemy_to_attack = None
 
@@ -254,7 +267,7 @@ class Combatant:
         if self.destroyed:
             return
 
-        nearby_combatants = self.combatant_collection.get_nearby_combatants(self.position)
+        nearby_combatants = self.nearby_combatants
         for other in nearby_combatants:
             if other is self:
                 continue
@@ -380,6 +393,7 @@ class Lizard(Combatant):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.since_last_attack -= random.random()
 
 
     def attack(self, other):
@@ -401,6 +415,7 @@ class Projectile(Combatant):
     COLLIDABLE = False
     TARGETABLE = False
     HIT_POINTS = 1
+    START_SLOW = False
 
     def __init__(self, combatant_collection, position, tribe=0, projectile_target=None):
         super().__init__(combatant_collection, position, tribe)
@@ -466,12 +481,13 @@ class Bee(Combatant):
     BASE_DAMAGE = 1
     # BOUNCE_SPEED = 0
     # JUMP_HEIGHT = 0
-    MAX_SPEED = 120
+    MAX_SPEED = 180
     HIT_POINTS = 1
     MASS = 20
     ACCELERATION = 1000
     FRICTION = 0.1
     ATTACK_SPEED = 0.6
+    START_SLOW = False
 
 
 class Beekeeper(Combatant):
@@ -480,23 +496,23 @@ class Beekeeper(Combatant):
     COST = 15
     DESCRIPTION = "Likes bees more\nthan people"
 
-    TARGET_DISTANCE_MIN = 300
-    TARGET_DISTANCE_MAX = 400
+    TARGET_DISTANCE_MIN = 350
+    TARGET_DISTANCE_MAX = 450
 
     BASE_DAMAGE = 1
-    HIT_POINTS = 15
+    HIT_POINTS = 18
     RADIUS = 40
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.since_bee = random.random() * 1
+        self.since_bee = random.random() * 1 + 0.5
 
     def update(self, dt, events):
         super().update(dt, events)
         if self.destroyed:
             return
         self.since_bee += dt
-        if self.since_bee > 4:
+        if self.since_bee > 3.5:
             self.bee()
 
     def bee(self):

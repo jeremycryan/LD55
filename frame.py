@@ -48,7 +48,10 @@ class ArenaFrame(Frame):
             summon_dict = self.summons[team]
             for unit in summon_dict:
                 for _ in range(summon_dict[unit]):
-                    position = random.random()*c.WINDOW_WIDTH*0.5 + c.WINDOW_WIDTH//2, random.random()*c.WINDOW_HEIGHT
+                    if team == 0:
+                        position = (random.random()*c.WINDOW_WIDTH*0.4 + c.WINDOW_WIDTH*0.1, random.random()*c.WINDOW_HEIGHT*0.8 + c.WINDOW_HEIGHT*0.1)
+                    else:
+                        position = (random.random()*c.WINDOW_WIDTH*0.4 + c.WINDOW_WIDTH*0.6, random.random()*c.WINDOW_HEIGHT*0.8 + c.WINDOW_HEIGHT*0.1)
                     self.combatants.add_multiple([unit(self.combatants, position, tribe=team)])
         # self.combatants.add_multiple([Frog(self.combatants, (random.random()*c.WINDOW_WIDTH*0.5, random.random()*c.WINDOW_HEIGHT), tribe=0) for _ in range(10)])
         # self.combatants.add_multiple([Frog(self.combatants, (random.random()*c.WINDOW_WIDTH*0.5 + c.WINDOW_WIDTH//2, random.random()*c.WINDOW_HEIGHT), tribe=1) for _ in range(5)])
@@ -107,8 +110,7 @@ class ShopFrame(Frame):
         return ArenaFrame(self.game, self.summons)
 
     def load(self):
-        self.background = ImageManager.load("images/shop_background.png")
-        self.sign = ImageManager.load("images/shop_sign.png")
+        self.background = ImageManager.load("images/shop_background_2.png").convert()
         self.teams = ImageManager.load("images/team_names.png")
 
         self.cauldron = ImageManager.load_copy("images/cauldron.png")
@@ -116,7 +118,7 @@ class ShopFrame(Frame):
 
         self.time_font = pygame.font.Font("fonts/SpicySushi.ttf", 73)
 
-        self.time_remaining = 45
+        self.time_remaining = 60
 
         self.preview_units_left = []
         self.preview_units_right = []
@@ -142,16 +144,19 @@ class ShopFrame(Frame):
 
         self.game.teams[0].append("jarm")
         self.game.teams[1].append("ppab")
-        # if c.DEBUG:
-        #     for i in range(20):
-        #         unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
-        #         self.buy_creatures("jarm", unit, 1)
-        #     for i in range(20):
-        #         unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
-        #         self.buy_creatures("ppab", unit, 1)
+        if c.DEBUG:
+            for i in range(20):
+                unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
+                self.buy_creatures("jarm", unit, 1)
+            for i in range(20):
+                unit = random.choice([Frog, BigFrog, Lizard, Beekeeper, Unicorn, Seeker])
+                self.buy_creatures("ppab", unit, 1)
 
     def update(self, dt, events):
         self.age += dt
+
+        if self.time_remaining > 5 and self.money[0] < 3 and self.money[1] < 3:
+            self.time_remaining = 0.01
 
         for panel in self.panels:
             panel.update(dt, events)
@@ -181,41 +186,47 @@ class ShopFrame(Frame):
 
     def draw(self, surface, offset=(0, 0)):
         surface.blit(self.background, offset)
-        surface.blit(self.teams, (offset[0], offset[1] + math.sin(time.time()*4.5)*4))
-        surface.blit(self.sign, (c.WINDOW_WIDTH//2 - self.sign.get_width()//2 + offset[0], offset[1]))
+
+        self.draw_ui(surface, offset=(0, 0))
+        self.draw_money(surface, offset)
+        self.draw_previews(surface, offset)
+        self.draw_clock(surface, offset)
+        self.draw_wipe(surface, offset)
+
+    def draw_ui(self, surface, offset=(0, 0)):
         for panel in self.panels:
             panel.draw(surface, offset)
+        surface.blit(self.teams, (offset[0], offset[1] + math.sin(time.time()*4.5)*4))
+        # surface.blit(self.sign, (c.WINDOW_WIDTH//2 - self.sign.get_width()//2 + offset[0], offset[1]))
 
+    def draw_money(self, surface, offset=(0, 0)):
         cost_surf = self.cost_font.render(f"{self.money[0]}", True, (80, 60, 100))
         cauldron_surf = self.cauldron.copy()
         cauldron_surf.blit(cost_surf,
-            (cauldron_surf.get_width()//2 - cost_surf.get_width()//2,
-            cauldron_surf.get_height()//2 - cost_surf.get_height()//2 + 15))
+                           (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 15))
         cost_surf = self.cost_font.render(f"{self.money[0]}", True, (255, 255, 255))
         cauldron_surf.blit(cost_surf,
-            (cauldron_surf.get_width()//2 - cost_surf.get_width()//2,
-            cauldron_surf.get_height()//2 - cost_surf.get_height()//2 + 10))
+                           (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 10))
 
-        x, y = (120 - self.cauldron.get_width()//2, 120 - self.cauldron.get_height()//2)
-        surface.blit(cauldron_surf, (x+offset[0], y+offset[1]))
+        x, y = (120 - self.cauldron.get_width() // 2, 120 - self.cauldron.get_height() // 2)
+        surface.blit(cauldron_surf, (x + offset[0], y + offset[1]))
 
         cost_surf = self.cost_font.render(f"{self.money[1]}", True, (80, 60, 100))
         cauldron_surf = self.cauldron.copy()
         cauldron_surf.blit(cost_surf,
-            (cauldron_surf.get_width()//2 - cost_surf.get_width()//2,
-            cauldron_surf.get_height()//2 - cost_surf.get_height()//2 + 15))
+                           (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 15))
         cost_surf = self.cost_font.render(f"{self.money[1]}", True, (255, 255, 255))
         cauldron_surf.blit(cost_surf,
-            (cauldron_surf.get_width()//2 - cost_surf.get_width()//2,
-            cauldron_surf.get_height()//2 - cost_surf.get_height()//2 + 10))
+                           (cauldron_surf.get_width() // 2 - cost_surf.get_width() // 2,
+                            cauldron_surf.get_height() // 2 - cost_surf.get_height() // 2 + 10))
 
-        self.draw_previews(surface, offset)
+        x, y = (c.WINDOW_WIDTH - 120 - self.cauldron.get_width() // 2, 120 - self.cauldron.get_height() // 2)
+        surface.blit(cauldron_surf, (x + offset[0], y + offset[1]))
 
-        x, y = (c.WINDOW_WIDTH - 120 - self.cauldron.get_width()//2, 120 - self.cauldron.get_height()//2)
-        surface.blit(cauldron_surf, (x+offset[0], y+offset[1]))
-
-        self.draw_clock(surface, offset)
-
+    def draw_wipe(self, surface, offset=(0, 0)):
         threshold = 0.5
         if self.age < threshold + 1:
             through = 1 - self.age/threshold
@@ -334,7 +345,6 @@ class ShopFrame(Frame):
             if i > 20:
                 row = 1
                 i = i%20
-            print(i)
             y = center[1] - row*30
             distance_from_center = out_small * (i+1)//2
             direction = 1 if i%2 else -1
@@ -376,7 +386,6 @@ class ShopFrame(Frame):
             if i > 20:
                 row = 1
                 i = i%20
-            print(i)
             y = center[1] - row*30
             distance_from_center = out_small * (i+1)//2
             direction = 1 if i%2 else -1

@@ -38,8 +38,11 @@ class Game:
             if dt > 0.05:
                 dt = 0.05
             current_frame.update(dt, events)
-            current_frame.draw(self.pre_screen, (0, 0))
-            self.screen.blit(pygame.transform.scale(self.pre_screen, (c.DISPLAY_SIZE)), (0, 0))
+            if c.DEBUG:
+                current_frame.draw(self.pre_screen, (0, 0))
+                self.screen.blit(pygame.transform.scale(self.pre_screen, (c.DISPLAY_SIZE)), (0, 0))
+            else:
+                current_frame.draw(self.screen, (0, 0))
             pygame.display.flip()
 
             if current_frame.done:

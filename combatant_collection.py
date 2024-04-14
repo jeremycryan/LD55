@@ -3,7 +3,7 @@ from primitives import Pose
 
 
 class CombatantCollection:
-    GRANULARITY = 200
+    GRANULARITY = 150
 
     def __init__(self):
         self.combatants = []
@@ -64,8 +64,10 @@ class CombatantCollection:
         self.combatants.sort(key=key)
 
     def update(self, dt, events):
-        for combatant in self.combatants:
+        for combatant in self.combatants[:]:
             combatant.update(dt, events)
+            if combatant.destroyed and not len(combatant.particles):
+                self.combatants.remove(combatant)
 
     def draw(self, surface, offset=(0, 0)):
         self.combatants.sort(key=lambda x: x.sort_value())
