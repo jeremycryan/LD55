@@ -329,7 +329,7 @@ class ShopFrame(Frame):
         if message.user not in self.game.teams[0] and message.user not in self.game.teams[1]:
             return  # ignore people who haven't joined a team
 
-        if split[0] == "buy" and len(split) in (2, 3):
+        if split[0] == "summon" and len(split) in (2, 3):
             creature_type = None
             for creature in TYPES:
                 if creature.NAME.lower() == split[1]:
